@@ -218,3 +218,29 @@ export async function getPhotoUrl(storagePath: string): Promise<string | null> {
   if (error) return null;
   return data.signedUrl;
 }
+
+// A quick one-tap way for a worker to surface a problem: bumps priority to
+// urgent and drops a flagged note, so it shows up on the manager's dashboard
+// and timeline immediately without a separate "problems" table.
+export async function flagProblem(jobId: string, formData: FormData) {
+  const ctx = await requireOrgContext(["manager", "worker"]);
+  const supabase = await createClient();
+
+  const description = String(formData.get("description") || "").trim();
+  if (!description) return;
+
+  await supabase
+    .from("jobs")
+    .update({ priority: "urgent", updated_at: new Date().toISOString() })
+    .eq("id", jobId);
+
+  await supabase.from("job_notes").insert({
+    job_id: jobId,
+    author_id: ctx.profile.id,
+    body: `⚠️ Problem flagged: ${description}`,
+    visible_to_customer: false,
+  });
+
+  revalidatePath(`/manager/jobs/${jobId}`);
+  revalidatePath(`/worker/jobs/${jobId}`);
+}
