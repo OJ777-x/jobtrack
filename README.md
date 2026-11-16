@@ -7,22 +7,37 @@ sales demo — see the main chat history for the full project brief.
 This README is written for someone with no coding background. Follow it top
 to bottom the first time.
 
-## What's in this project right now (end of Phase 1)
+## What's in this project right now (through Phase 6)
 
-- A working Next.js app with sign-in for three types of user: Manager, Worker
-  and Customer.
-- A database design (in `supabase/schema.sql`) covering organisations,
-  industry templates, customers, jobs, tasks, notes, photos and more —
-  built now so later phases don't need to redesign the database.
-- Two industry templates already written: **Engineering** (default demo
-  company "Northfield Engineering Services Ltd") and **Plumbing & Heating**
-  ("Clearflow Plumbing & Heating Ltd"). Only Engineering is switched on by
-  default — switching between them is a Phase 7 feature.
+- Sign-in for three types of user: Manager, Worker and Customer, each with
+  their own screens.
+- A full database design (`supabase/schema.sql`) covering organisations,
+  industry templates, customers, enquiries/quotes, jobs, tasks, notes,
+  photos, parts awaited, customer updates and an AI action log — all with
+  row-level security so each organisation only ever sees its own data.
+- Two industry templates: **Engineering** (default demo company "Northfield
+  Engineering Services Ltd") and **Plumbing & Heating** ("Clearflow Plumbing
+  & Heating Ltd"). Only Engineering is active by default — a switcher
+  between them is a Phase 7 feature.
+- The full office workflow: customers → enquiries → quotes → approval →
+  converting a quote into a job, with custom fields, a drag-and-drop job
+  board, a filterable list view, a scheduling calendar, parts-awaited
+  tracking, and a dashboard with real metrics (due this week, late, stuck,
+  value of open work, on-time completion rate).
+- A mobile-first worker view (one-tap stage advance, tasks, notes, photos,
+  "flag a problem"), installable as a PWA on a phone or tablet.
+- A read-only customer portal: their own jobs, a visual progress stepper,
+  and any notes/updates marked visible to them.
+- Four AI features under the **AI** tab (Manager): customer progress update
+  drafts (human-approved before publishing), risk flags for jobs likely to
+  run late, paste-in email/notes analysis (nothing saves without
+  confirmation), and plain-English Q&A over your own job data. All four work
+  with **no Anthropic API key** — see "AI features" below.
 - A "Reset demo data" script that wipes and recreates the demo login
   accounts, organisation, and customers for whichever template you choose.
 
-Nothing about jobs, quotes, the job board, scheduling, the customer portal's
-real content, or the AI features exists yet — those are later phases.
+Still to come: the plumbing template switcher (Phase 7), and final polish —
+demo script pages, Vercel deployment (Phase 8).
 
 ## One-time setup
 
@@ -61,6 +76,14 @@ values never get committed or uploaded anywhere.
 This creates every table the app needs, plus the security rules that keep
 each organisation's data private.
 
+### 3b. Set up photo/document storage (so photo upload works)
+
+Run `supabase/phase2_storage.sql` the same way — SQL Editor → New query →
+paste its contents → Run. This creates a private storage bucket for job
+photos/documents and the rules controlling who can see what. Until this is
+run, photo upload on a job will silently do nothing (everything else works
+fine without it).
+
 ### 4. Load the demo data
 
 In a terminal, inside the `jobtrack` folder, run:
@@ -84,6 +107,28 @@ npm run dev
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 You'll land on the sign-in page — click "Log in as Manager", "Log in as
 Worker" or "Log in as Customer" to see each view.
+
+## AI features
+
+The four AI features (under the **AI** tab when signed in as Manager) work
+two ways:
+
+- **Demo mode (default, no API key)** — drafts, answers and proposals are
+  assembled directly from your real data using plain code (not a canned
+  generic placeholder), so the demo is fully functional without any cost or
+  setup. A banner on each AI page tells you when you're in demo mode.
+- **With an Anthropic API key** — set `ANTHROPIC_API_KEY` in `.env.local`
+  (get one at [console.anthropic.com](https://console.anthropic.com)) and
+  restart `npm run dev`. The same features then call Claude (the cheap,
+  fast `claude-haiku-4-5` model) to turn the same facts into more natural
+  prose — it's always given the real data explicitly and told never to
+  invent dates, prices, or promises beyond what's listed.
+
+Every AI action — drafting, publishing, a paste-in analysis, a question
+asked — is written to the `ai_action_log` table and visible at the bottom of
+the AI hub page (`/manager/ai`), along with whether a human had to confirm
+it. Nothing an AI feature does to your data (publishing an update, adding a
+note, changing a stage) happens without an explicit confirm click.
 
 ## How the industry template system works
 
@@ -125,17 +170,21 @@ No other code changes are needed — every screen reads from the template.
 
 ```
 src/
-  app/            Pages — login, manager dashboard, worker dashboard, customer portal
-  components/      Shared UI pieces (e.g. the top header bar)
+  app/            Pages — login, manager (customers/enquiries/jobs/board/calendar/AI),
+                  worker (mobile), customer portal
+  components/      Shared UI pieces (header, job board, AI chat widgets)
   lib/
     supabase/      Database connection helpers
     templates/      The industry template definitions
+    ai/             AI feature logic (Claude client, demo-mode fallbacks, action logging)
     org-context.ts  Loads "who is signed in, which org, which template" for every page
+    job-helpers.ts  Template-aware lookups (stage labels, job type labels, etc.)
     seed-demo.ts    The logic behind `npm run seed` and the future admin reset button
 supabase/
-  schema.sql        The whole database design — run this once per Supabase project
+  schema.sql          The whole database design — run this once per Supabase project
+  phase2_storage.sql  Job photo/document storage bucket + access rules — run this once too
 scripts/
-  seed.ts           Command-line entry point for seeding demo data
+  seed.ts             Command-line entry point for seeding demo data
 ```
 
 ## Troubleshooting
