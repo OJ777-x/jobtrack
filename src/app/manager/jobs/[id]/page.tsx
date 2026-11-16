@@ -11,6 +11,8 @@ import {
   addNote,
   addPhoto,
   getPhotoUrl,
+  addPart,
+  markPartReceived,
 } from "../actions";
 
 type TimelineEvent = {
@@ -41,7 +43,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const jobType = getJobType(config, job.job_type);
   const customer = job.customers as unknown as { id: string; name: string } | null;
 
-  const [{ data: staff }, { data: tasks }, { data: notes }, { data: photos }, { data: stageHistory }] =
+  const [{ data: staff }, { data: tasks }, { data: notes }, { data: photos }, { data: stageHistory }, { data: parts }] =
     await Promise.all([
       supabase.from("profiles").select("id, display_name").eq("org_id", ctx.organisation.id).in("role", ["manager", "worker"]),
       supabase.from("job_tasks").select("id, title, is_done, stage").eq("job_id", id).order("created_at"),
@@ -56,6 +58,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         .select("id, from_stage, to_stage, note, changed_at, profiles(display_name)")
         .eq("job_id", id)
         .order("changed_at", { ascending: false }),
+      supabase.from("parts_awaited").select("id, description, expected_date, received").eq("job_id", id).order("created_at"),
     ]);
 
   const currentStageTasks = tasks?.filter((t) => t.stage === job.stage) ?? [];
@@ -86,6 +89,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const changeStageWithId = changeStage.bind(null, id);
   const addNoteWithId = addNote.bind(null, id);
   const addPhotoWithId = addPhoto.bind(null, id);
+  const addPartWithId = addPart.bind(null, id);
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-6 py-8">
@@ -300,6 +304,46 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Parts awaited */}
+      <section className="rounded-xl border border-slate-200 bg-white p-6">
+        <h2 className="text-sm font-semibold text-slate-900">Parts/materials awaited</h2>
+        {!parts || parts.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">Nothing on order for this {labels.job.toLowerCase()}.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {parts.map((p) => (
+              <li key={p.id} className="flex items-center justify-between rounded-md border border-slate-100 px-3 py-2 text-sm">
+                <span className={p.received ? "text-slate-400 line-through" : "text-slate-700"}>
+                  {p.description}
+                  {p.expected_date ? ` — expected ${p.expected_date}` : ""}
+                </span>
+                <form action={markPartReceived.bind(null, id, p.id, !p.received)}>
+                  <button
+                    type="submit"
+                    className={`text-xs font-medium ${p.received ? "text-slate-500" : "text-blue-700"} hover:underline`}
+                  >
+                    {p.received ? "Undo" : "Mark received"}
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+        <form action={addPartWithId} className="mt-4 flex items-end gap-2 border-t border-slate-100 pt-4">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-600">Description</label>
+            <input name="description" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Expected date</label>
+            <input name="expected_date" type="date" className="mt-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm" />
+          </div>
+          <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700">
+            Add
+          </button>
+        </form>
       </section>
 
       {/* Notes */}

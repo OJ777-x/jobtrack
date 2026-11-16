@@ -22,6 +22,10 @@ export function firstStageKey(jobType: JobTypeDef): string {
   return jobType.stages[0]?.key ?? "";
 }
 
+export function isTerminalStage(jobType: JobTypeDef, stageKey: string): boolean {
+  return jobType.stages[jobType.stages.length - 1]?.key === stageKey;
+}
+
 // e.g. "Northfield Engineering Services Ltd" -> "NES-0001"
 export function generateJobReference(orgName: string, sequence: number): string {
   const initials = orgName

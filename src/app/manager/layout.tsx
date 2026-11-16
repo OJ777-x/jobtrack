@@ -11,6 +11,8 @@ export default async function ManagerLayout({ children }: { children: React.Reac
     { href: "/manager/customers", label: labels.customers },
     { href: "/manager/enquiries", label: labels.enquiries },
     { href: "/manager/jobs", label: labels.jobs },
+    { href: "/manager/jobs/board", label: "Board" },
+    { href: "/manager/calendar", label: "Schedule" },
   ];
 
   return (

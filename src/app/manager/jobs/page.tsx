@@ -10,30 +10,78 @@ const PRIORITY_STYLES: Record<string, string> = {
   urgent: "bg-red-100 text-red-700",
 };
 
-export default async function JobsPage() {
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string; stage?: string }>;
+}) {
   const ctx = await requireOrgContext(["manager"]);
   const { labels, config } = { labels: ctx.template.config.labels, config: ctx.template.config };
+  const { type, stage } = await searchParams;
   const supabase = await createClient();
 
-  const { data: jobs } = await supabase
+  let query = supabase
     .from("jobs")
     .select("id, reference_number, job_type, stage, due_date, priority, customers(name), profiles(display_name)")
-    .eq("org_id", ctx.organisation.id)
-    .order("created_at", { ascending: false });
+    .eq("org_id", ctx.organisation.id);
+
+  if (type) query = query.eq("job_type", type);
+  if (stage) query = query.eq("stage", stage);
+
+  const { data: jobs } = await query.order("created_at", { ascending: false });
+
+  const stageOptions = type
+    ? (config.jobTypes.find((jt) => jt.key === type)?.stages ?? [])
+    : Array.from(
+        new Map(config.jobTypes.flatMap((jt) => jt.stages).map((s) => [s.key, s])).values()
+      );
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900">{labels.jobs}</h1>
-        <p className="text-xs text-slate-400">
-          New {labels.jobs.toLowerCase()} are created by converting an approved {labels.quote.toLowerCase()} on the {labels.enquiries} page.
-        </p>
+        <Link href="/manager/jobs/board" className="text-sm text-blue-700 hover:underline">
+          Switch to board view
+        </Link>
       </div>
+
+      <form className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div>
+          <label className="block text-xs font-medium text-slate-600">{labels.job} type</label>
+          <select name="type" defaultValue={type ?? ""} className="mt-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+            <option value="">All</option>
+            {config.jobTypes.map((jt) => (
+              <option key={jt.key} value={jt.key}>
+                {jt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600">Stage</label>
+          <select name="stage" defaultValue={stage ?? ""} className="mt-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+            <option value="">All</option>
+            {stageOptions.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700">
+          Filter
+        </button>
+        {(type || stage) && (
+          <Link href="/manager/jobs" className="text-xs text-slate-500 hover:underline">
+            Clear filters
+          </Link>
+        )}
+      </form>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         {!jobs || jobs.length === 0 ? (
           <p className="p-6 text-sm text-slate-500">
-            No {labels.jobs.toLowerCase()} yet. Create an {labels.enquiry.toLowerCase()}, approve a{" "}
+            No {labels.jobs.toLowerCase()} match. Create an {labels.enquiry.toLowerCase()}, approve a{" "}
             {labels.quote.toLowerCase()}, then convert it here.
           </p>
         ) : (

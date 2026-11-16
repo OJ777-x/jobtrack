@@ -57,13 +57,9 @@ export async function updateCustomFields(jobId: string, formData: FormData) {
   revalidatePath(`/manager/jobs/${jobId}`);
 }
 
-export async function changeStage(jobId: string, formData: FormData) {
+async function moveJobToStageInternal(jobId: string, newStage: string, note: string | null) {
   const ctx = await requireOrgContext(["manager", "worker"]);
   const supabase = await createClient();
-
-  const newStage = String(formData.get("stage") || "");
-  const note = String(formData.get("note") || "").trim() || null;
-  if (!newStage) return;
 
   const { data: job } = await supabase.from("jobs").select("job_type, stage").eq("id", jobId).single();
   if (!job || job.stage === newStage) return;
@@ -98,6 +94,45 @@ export async function changeStage(jobId: string, formData: FormData) {
       );
     }
   }
+
+  revalidatePath(`/manager/jobs/${jobId}`);
+  revalidatePath(`/manager/jobs`);
+  revalidatePath(`/manager/jobs/board`);
+  revalidatePath(`/worker/jobs/${jobId}`);
+}
+
+export async function changeStage(jobId: string, formData: FormData) {
+  const newStage = String(formData.get("stage") || "");
+  const note = String(formData.get("note") || "").trim() || null;
+  if (!newStage) return;
+  await moveJobToStageInternal(jobId, newStage, note);
+}
+
+// Used by the drag-and-drop job board (a Client Component calling this
+// directly, rather than through a <form>).
+export async function moveJobToStage(jobId: string, newStage: string) {
+  await moveJobToStageInternal(jobId, newStage, null);
+}
+
+export async function addPart(jobId: string, formData: FormData) {
+  await requireOrgContext(["manager", "worker"]);
+  const supabase = await createClient();
+
+  const description = String(formData.get("description") || "").trim();
+  if (!description) return;
+  const expectedDate = String(formData.get("expected_date") || "") || null;
+
+  await supabase.from("parts_awaited").insert({ job_id: jobId, description, expected_date: expectedDate });
+
+  revalidatePath(`/manager/jobs/${jobId}`);
+  revalidatePath(`/worker/jobs/${jobId}`);
+}
+
+export async function markPartReceived(jobId: string, partId: string, received: boolean) {
+  await requireOrgContext(["manager", "worker"]);
+  const supabase = await createClient();
+
+  await supabase.from("parts_awaited").update({ received }).eq("id", partId);
 
   revalidatePath(`/manager/jobs/${jobId}`);
   revalidatePath(`/worker/jobs/${jobId}`);
