@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login"];
+// /admin has its own separate password gate (see src/lib/admin-auth.ts) —
+// it isn't tied to a Supabase-authenticated organisation at all, since
+// switching templates destroys and recreates the organisation itself.
+const PUBLIC_PATHS = ["/login", "/admin"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

@@ -87,6 +87,12 @@ export default async function LoginPage({
             </button>
           </form>
         </details>
+
+        <p className="text-center text-xs text-slate-400">
+          <a href="/admin" className="hover:underline">
+            Demo admin (switch industry template)
+          </a>
+        </p>
       </div>
     </div>
   );
