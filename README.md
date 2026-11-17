@@ -84,6 +84,17 @@ photos/documents and the rules controlling who can see what. Until this is
 run, photo upload on a job will silently do nothing (everything else works
 fine without it).
 
+### 3c. Set up the organisation-settings fix and logo storage
+
+Run these two files the same way, one after the other:
+
+1. `supabase/phase8_org_update_policy.sql` — fixes a bug where the
+   Settings page (company name/colours) looked like it saved but silently
+   didn't (a missing permission). Without this, Settings won't actually save.
+2. `supabase/phase8_org_logos.sql` — a public storage bucket for the
+   company logo uploaded on the Settings page. Without this, logo upload
+   silently does nothing (name/colours will still save fine once 3c.1 is run).
+
 ### 4. Load the demo data
 
 In a terminal, inside the `jobtrack` folder, run:
@@ -107,6 +118,52 @@ npm run dev
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 You'll land on the sign-in page — click "Log in as Manager", "Log in as
 Worker" or "Log in as Customer" to see each view.
+
+## Demo admin: switching templates & the demo script
+
+Click **"Demo admin"** at the bottom of the sign-in page (or go to `/admin`).
+The password defaults to `jobtrack-admin` — change it by setting
+`ADMIN_PASSWORD` in `.env.local` before showing this to anyone outside your
+own team.
+
+From there you can:
+
+- **Switch the whole demo** between Engineering and Plumbing & Heating —
+  this wipes and recreates the demo organisation, logins and customers for
+  whichever template you pick. Anyone currently signed in gets logged out;
+  the one-click login buttons work immediately with the new template.
+- **Reset the current template's demo data** back to a clean state (the
+  same as `npm run seed`, without needing a terminal).
+- **View the demo script** for whichever template is currently active — the
+  steps to click through, in order, to show a prospect the wow moments in
+  under 10 minutes. It's only reachable from the admin area, so it never
+  shows up as a tab inside the demo itself.
+
+## Deploying to Vercel (so you have a live link to share)
+
+Vercel is free for this scale and is built by the same team as Next.js, so
+deployment is simple. You'll need a **GitHub account** (to store the code)
+and a **Vercel account** (sign up with GitHub — one click) — both free.
+
+1. Create a new, empty repository on [github.com/new](https://github.com/new)
+   (don't tick any of the "initialize with" checkboxes).
+2. In a terminal, inside the `jobtrack` folder:
+   ```bash
+   git remote add origin <the URL GitHub gives you>
+   git push -u origin main
+   ```
+3. Go to [vercel.com/new](https://vercel.com/new), sign in with GitHub, and
+   import that repository.
+4. Before clicking Deploy, add your environment variables (Vercel calls this
+   "Environment Variables" on the import screen) — copy every value from
+   your local `.env.local` across: `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+   `ANTHROPIC_API_KEY` (if you have one), `DEMO_PASSWORD`, `ADMIN_PASSWORD`.
+5. Click **Deploy**. After a minute or two you'll get a live `.vercel.app`
+   link you can share with prospects.
+
+Any time you want to update the live version, just `git push` again — Vercel
+redeploys automatically.
 
 ## AI features
 
@@ -170,21 +227,29 @@ No other code changes are needed — every screen reads from the template.
 
 ```
 src/
-  app/            Pages — login, manager (customers/enquiries/jobs/board/calendar/AI),
-                  worker (mobile), customer portal
-  components/      Shared UI pieces (header, job board, AI chat widgets)
+  app/
+    admin/          Demo-control screens: switch template, reset data, demo script
+    login/          Sign-in page + one-click demo logins
+    manager/        Customers, enquiries, jobs, board, calendar, AI, settings
+    worker/          Mobile-first "my jobs" view
+    portal/          Read-only customer portal
+  components/        Shared UI pieces (header, job board, AI chat widgets)
   lib/
-    supabase/      Database connection helpers
-    templates/      The industry template definitions
-    ai/             AI feature logic (Claude client, demo-mode fallbacks, action logging)
-    org-context.ts  Loads "who is signed in, which org, which template" for every page
-    job-helpers.ts  Template-aware lookups (stage labels, job type labels, etc.)
-    seed-demo.ts    The logic behind `npm run seed` and the future admin reset button
+    supabase/        Database connection helpers
+    templates/        The industry template definitions
+    ai/               AI feature logic (Claude client, demo-mode fallbacks, action logging)
+    admin-auth.ts     The separate password gate for /admin
+    org-context.ts    Loads "who is signed in, which org, which template" for every page
+    job-helpers.ts    Template-aware lookups (stage labels, job type labels, etc.)
+    seed-demo.ts      The logic behind `npm run seed` and the /admin template switcher
 supabase/
-  schema.sql          The whole database design — run this once per Supabase project
-  phase2_storage.sql  Job photo/document storage bucket + access rules — run this once too
+  schema.sql                   The whole database design — run once per Supabase project
+  phase2_storage.sql           Job photo/document storage bucket + access rules
+  phase8_org_update_policy.sql Fixes a missing permission so Settings can save
+  phase8_org_logos.sql         Storage bucket for the company logo in Settings
 scripts/
   seed.ts             Command-line entry point for seeding demo data
+  generate-icons.mjs  Regenerates the placeholder PWA icons (swap for a real logo later)
 ```
 
 ## Troubleshooting
@@ -194,4 +259,7 @@ scripts/
 - **Blank page / error about environment variables** — check `.env.local`
   exists and has real values (not left blank), then restart `npm run dev`.
 - **Changed `schema.sql` and want a totally clean database** — just re-run
-  the whole file in the SQL Editor again; it drops and recreates every table.
+  the whole file in the SQL Editor again; it drops and recreates every table
+  (you'll need to re-run the other `supabase/*.sql` files too, and `npm run seed`).
+- **Settings page says it saved but nothing changed** — run
+  `supabase/phase8_org_update_policy.sql` (see step 3c above).

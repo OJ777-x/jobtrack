@@ -119,5 +119,47 @@ export const engineeringTemplate: IndustryTemplate = {
         { name: "Midlands Water Treatment", email: "ops@midlandswater.demo", phone: "01743 555 0103" },
       ],
     },
+    demoScript: [
+      {
+        title: "1. Start as the Workshop Manager",
+        detail:
+          "Log in as Manager (Sarah Hughes). Point out the dashboard: open jobs, value of open work, work-in-progress by stage — all real numbers, not mock-ups.",
+      },
+      {
+        title: "2. Raise a real job, live",
+        detail:
+          "Go to Enquiries → New enquiry → pick \"Severn Trent Pumping Station\" and job type \"Repair\". Add a quote, mark it sent, mark it approved, then Convert to job — fill in equipment type, serial number. Point out these fields are specific to engineering; a plumber's version asks about boiler make/model instead.",
+      },
+      {
+        title: "3. Show the job board",
+        detail:
+          "Open the Job board. Drag the new job into \"Inspection\" — the checklist for that stage appears automatically, and the move is timestamped on the job's timeline. This is the whiteboard they're replacing.",
+      },
+      {
+        title: "4. Switch to the engineer's phone view",
+        detail:
+          "Sign out, log in as Worker (Dave Patterson) — ideally on a phone or narrow browser window. Tap the job, tick off a task, then tap \"Flag a problem\" and type something short. ",
+      },
+      {
+        title: "5. Show the manager sees it instantly",
+        detail:
+          "Sign back in as Manager — the job is now marked urgent on the Jobs list, and the flagged note is on its timeline. No phone call needed.",
+      },
+      {
+        title: "6. Show the customer's view",
+        detail:
+          "Sign in as Customer. They see only their own job, a plain progress stepper, and any update you've chosen to share — never your internal notes or pricing.",
+      },
+      {
+        title: "7. The AI features",
+        detail:
+          "Back as Manager, open the AI tab: Risk flags (jobs likely to run late, with a plain reason), Ask a question (\"what's waiting on parts?\"), Paste-in updates (paste a rough email, review what it proposes, confirm), and Customer progress updates (draft → you edit → you publish — never sent automatically).",
+      },
+      {
+        title: "8. The closer: this isn't engineering-only software",
+        detail:
+          "Mention that every label, job type, stage and field you've just seen comes from one template file — the same app can be relabelled for plumbers, electricians, or estate agents with zero code changes. Offer to show /admin switching it live to the Plumbing & Heating demo if they want proof.",
+      },
+    ],
   },
 };

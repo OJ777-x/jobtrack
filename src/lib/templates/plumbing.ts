@@ -162,5 +162,47 @@ export const plumbingTemplate: IndustryTemplate = {
         { name: "Riverside Housing Association", email: "maintenance@riverside.demo", phone: "0117 555 0203" },
       ],
     },
+    demoScript: [
+      {
+        title: "1. Start as the Office Manager",
+        detail:
+          "Log in as Manager (Karen Ellis). Point out the dashboard: open jobs, value of open work, work-in-progress by stage — all real numbers, not mock-ups.",
+      },
+      {
+        title: "2. Raise a real job, live",
+        detail:
+          "Go to Enquiries → New enquiry → pick \"Mrs. Patricia Allen\" and job type \"Boiler install\". Add a quote, mark it sent, mark it approved, then Convert to job — fill in property type and boiler make/model. Point out these fields are specific to plumbing; an engineering firm's version asks about equipment serial numbers instead.",
+      },
+      {
+        title: "3. Show the job board",
+        detail:
+          "Open the Job board. Drag the new job into \"Survey booked\" — the checklist for that stage appears automatically, and the move is timestamped on the job's timeline. This is the whiteboard/wall-planner they're replacing.",
+      },
+      {
+        title: "4. Switch to the engineer's phone view",
+        detail:
+          "Sign out, log in as Worker (Tom Brennan) — ideally on a phone or narrow browser window. Tap the job, tick off a task, then tap \"Flag a problem\" and type something short, e.g. a part that hasn't arrived.",
+      },
+      {
+        title: "5. Show the manager sees it instantly",
+        detail:
+          "Sign back in as Manager — the job is now marked urgent on the Jobs list, and the flagged note is on its timeline. No phone call needed.",
+      },
+      {
+        title: "6. Show the customer's view",
+        detail:
+          "Sign in as Customer. They see only their own job, a plain progress stepper, and any update you've chosen to share — never your internal notes or pricing. Reassuring for homeowners who keep chasing for updates.",
+      },
+      {
+        title: "7. The AI features",
+        detail:
+          "Back as Manager, open the AI tab: Risk flags (jobs likely to run late, with a plain reason), Ask a question (\"what's waiting on parts?\"), Paste-in updates (paste a rough email from a customer, review what it proposes, confirm), and Customer progress updates (draft → you edit → you publish — never sent automatically, in a warm homeowner-friendly tone).",
+      },
+      {
+        title: "8. The closer: this isn't plumbing-only software",
+        detail:
+          "Mention that every label, job type, stage and field you've just seen comes from one template file — the same app can be relabelled for engineering firms, electricians, or estate agents with zero code changes. Offer to show /admin switching it live to the Engineering demo if they want proof.",
+      },
+    ],
   },
 };

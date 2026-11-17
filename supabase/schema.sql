@@ -279,6 +279,10 @@ create policy "templates readable by any signed-in user" on industry_templates
 create policy "own organisation readable" on organisations
   for select using (id = profile_org_id());
 
+create policy "own organisation updatable by staff" on organisations
+  for update using (id = profile_org_id() and profile_role() in ('manager', 'worker'))
+  with check (id = profile_org_id() and profile_role() in ('manager', 'worker'));
+
 create policy "own profile readable" on profiles
   for select using (id = auth.uid() or org_id = profile_org_id());
 

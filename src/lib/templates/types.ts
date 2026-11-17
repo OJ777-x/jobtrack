@@ -66,6 +66,11 @@ export type AiTone = {
   signOff: string;
 };
 
+export type DemoScriptStep = {
+  title: string;
+  detail: string;
+};
+
 export type TemplateConfig = {
   labels: TemplateLabels;
   branding: {
@@ -75,6 +80,7 @@ export type TemplateConfig = {
   jobTypes: JobTypeDef[];
   aiTone: AiTone;
   demoData: DemoData;
+  demoScript: DemoScriptStep[];
 };
 
 export type IndustryTemplate = {

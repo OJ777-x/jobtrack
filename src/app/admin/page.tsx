@@ -32,11 +32,16 @@ export default async function AdminPage({
             <h1 className="text-xl font-semibold text-slate-900">Demo admin</h1>
             <p className="text-sm text-slate-500">Switch the whole demo between industry templates.</p>
           </div>
-          <form action={adminLogout}>
-            <button type="submit" className="text-sm text-slate-500 hover:underline">
-              Log out
-            </button>
-          </form>
+          <div className="flex items-center gap-4">
+            <a href="/admin/demo-script" className="text-sm text-blue-700 hover:underline">
+              Demo script
+            </a>
+            <form action={adminLogout}>
+              <button type="submit" className="text-sm text-slate-500 hover:underline">
+                Log out
+              </button>
+            </form>
+          </div>
         </div>
 
         {switched && (
